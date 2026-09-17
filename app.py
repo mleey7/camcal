@@ -5,6 +5,7 @@ import base64
 from datetime import datetime
 from PIL import Image
 import io
+import os
 
 # Page configuration for mobile-friendly UI
 st.set_page_config(
@@ -14,23 +15,44 @@ st.set_page_config(
     initial_sidebar_state="collapsed",
 )
 
-# Custom CSS for Arabic & Mobile Styling
+# Custom CSS for Mobile & Arabic RTL layout (No sidebar glitch)
 st.markdown("""
 <style>
     @import url('https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700;800&display=swap');
     
-    html, body, [class*="css"] {
-        font-family: 'Cairo', sans-serif;
-        direction: rtl;
-        text-align: right;
+    * {
+        font-family: 'Cairo', sans-serif !important;
     }
     
-    .stMetric {
+    .stApp {
+        direction: rtl !important;
+        text-align: right !important;
+    }
+    
+    /* Completely hide sidebar and collapsed drawer on mobile to avoid overlapping */
+    [data-testid="stSidebar"], [data-testid="collapsedControl"] {
+        display: none !important;
+    }
+    
+    /* Clean, spacious metric boxes for mobile */
+    div[data-testid="stMetric"] {
         background: #f8f9fa;
-        padding: 12px;
+        padding: 12px 14px;
         border-radius: 12px;
         border: 1px solid #e9ecef;
         text-align: center;
+        margin-bottom: 8px;
+    }
+    
+    div[data-testid="stMetricLabel"] {
+        justify-content: center !important;
+        font-size: 0.95rem !important;
+        font-weight: 600 !important;
+    }
+    
+    div[data-testid="stMetricValue"] {
+        font-size: 1.45rem !important;
+        justify-content: center !important;
     }
     
     .meal-card {
@@ -49,6 +71,7 @@ st.markdown("""
         font-size: 0.85rem;
         font-weight: 600;
         margin-left: 6px;
+        margin-top: 4px;
     }
     .badge-cal { background: #ffe3e3; color: #c92a2a; }
     .badge-pro { background: #e7f5ff; color: #1864ab; }
@@ -56,8 +79,6 @@ st.markdown("""
     .badge-fat { background: #e6fcf5; color: #087f5b; }
 </style>
 """, unsafe_allow_html=True)
-
-import os
 
 # Helper: Get API Key
 def get_api_key():
@@ -73,7 +94,7 @@ def analyze_food_image(image_bytes: bytes, api_key: str):
     models = ["gemini-3.5-flash", "gemini-3.8-flash", "gemini-3.1-flash-lite"]
     
     prompt = """
-    أنت خبير تغذية وذكاء اصطناعي متخصص في حساب السعرات.
+    أنت خبير تغذية متخصص في حساب السعرات ومكونات الطعام.
     حلل هذه الصورة واكتشف نوع الوجبة أو الأطعمة الموجودة بدقة.
     قدّر وزنها التقريبي، ثم احسب بدقة:
     1. السعرات الحرارية (calories)
@@ -146,35 +167,6 @@ if "daily_goal" not in st.session_state:
 st.title("📸 متتبع السعرات بالكاميرا")
 st.caption("صوّر وجبتك بكاميرا جوالك أو ارفع صورتها لحساب السعرات والماكروز مباشرة")
 
-# Sidebar for Settings & Macro Goals
-with st.sidebar:
-    st.header("🎯 أهدافك اليومية (الماكروز)")
-    st.markdown("الأهداف الحالية المعتمدة:")
-    
-    col_g1, col_g2 = st.columns(2)
-    with col_g1:
-        new_cal = st.number_input("السعرات (kcal)", min_value=500, max_value=10000, value=st.session_state.daily_goal["calories"], step=50)
-        new_pro = st.number_input("البروتين (g)", min_value=10, max_value=500, value=st.session_state.daily_goal["protein"], step=5)
-    with col_g2:
-        new_carb = st.number_input("الكارب (g)", min_value=10, max_value=800, value=st.session_state.daily_goal["carbs"], step=5)
-        new_fat = st.number_input("الدهون (g)", min_value=5, max_value=300, value=st.session_state.daily_goal["fat"], step=5)
-        
-    if st.button("💾 حفظ أي تعديل جديد", use_container_width=True):
-        st.session_state.daily_goal = {
-            "calories": int(new_cal),
-            "protein": int(new_pro),
-            "carbs": int(new_carb),
-            "fat": int(new_fat)
-        }
-        st.success("تم تحديث أهدافك بنجاح!")
-        st.rerun()
-
-    st.markdown("---")
-    st.subheader("🔑 مفتاح الخدمة")
-    user_key = st.text_input("مفتاح الخدمة (اختياري)", value=get_api_key(), type="password")
-    if user_key:
-        st.session_state["api_key"] = user_key
-
 # Calculate current totals
 total_cal = sum(m["calories"] for m in st.session_state.meals)
 total_pro = sum(m["protein"] for m in st.session_state.meals)
@@ -184,17 +176,19 @@ total_fat = sum(m["fat"] for m in st.session_state.meals)
 goal = st.session_state.daily_goal
 rem_cal = max(0, goal["calories"] - total_cal)
 
-# Progress Indicators
+# Progress Indicators (Optimized 2x2 grid for Mobile)
 st.subheader("📊 ملخص اليوم")
-col1, col2, col3, col4 = st.columns(4)
+col1, col2 = st.columns(2)
 with col1:
-    st.metric("المتبقي", f"{rem_cal} سعرة", delta=f"{total_cal}/{goal['calories']}")
+    st.metric("المتبقي 🔥", f"{rem_cal} سعرة", delta=f"{total_cal}/{goal['calories']}")
 with col2:
-    st.metric("البروتين", f"{total_pro}g", f"من {goal['protein']}g")
+    st.metric("البروتين 🥩", f"{total_pro}g", f"من {goal['protein']}g")
+
+col3, col4 = st.columns(2)
 with col3:
-    st.metric("الكارب", f"{total_carb}g", f"من {goal['carbs']}g")
+    st.metric("الكارب 🍞", f"{total_carb}g", f"من {goal['carbs']}g")
 with col4:
-    st.metric("الدهون", f"{total_fat}g", f"من {goal['fat']}g")
+    st.metric("الدهون 🥑", f"{total_fat}g", f"من {goal['fat']}g")
 
 progress_pct = min(1.0, total_cal / max(1, goal["calories"]))
 st.progress(progress_pct, text=f"استهلكت {int(progress_pct * 100)}% من احتياجك اليومي")
@@ -230,9 +224,10 @@ if "last_analysis" in st.session_state and st.session_state["last_analysis"]:
     res = st.session_state["last_analysis"]
     st.success(f"🍽️ **تم التعرف على:** {res.get('name', 'وجبة')}")
     
-    c1, c2, c3, c4 = st.columns(4)
+    c1, c2 = st.columns(2)
     c1.metric("السعرات 🔥", f"{res.get('calories', 0)} kcal")
     c2.metric("البروتين 🥩", f"{res.get('protein', 0)} g")
+    c3, c4 = st.columns(2)
     c3.metric("الكارب 🍞", f"{res.get('carbs', 0)} g")
     c4.metric("الدهون 🥑", f"{res.get('fat', 0)} g")
     
@@ -279,3 +274,33 @@ else:
     if st.button("🗑️ مسح سجل اليوم"):
         st.session_state.meals = []
         st.rerun()
+
+st.markdown("---")
+
+# Bottom Expander for Settings (Clean and non-intrusive on Mobile)
+with st.expander("⚙️ تعديل الأهداف اليومية (الماكروز) والمفتاح"):
+    st.markdown("أهدافك الحالية المعتمدة:")
+    
+    col_g1, col_g2 = st.columns(2)
+    with col_g1:
+        new_cal = st.number_input("السعرات (kcal)", min_value=500, max_value=10000, value=st.session_state.daily_goal["calories"], step=50)
+        new_pro = st.number_input("البروتين (g)", min_value=10, max_value=500, value=st.session_state.daily_goal["protein"], step=5)
+    with col_g2:
+        new_carb = st.number_input("الكارب (g)", min_value=10, max_value=800, value=st.session_state.daily_goal["carbs"], step=5)
+        new_fat = st.number_input("الدهون (g)", min_value=5, max_value=300, value=st.session_state.daily_goal["fat"], step=5)
+        
+    if st.button("💾 حفظ التعديلات", use_container_width=True):
+        st.session_state.daily_goal = {
+            "calories": int(new_cal),
+            "protein": int(new_pro),
+            "carbs": int(new_carb),
+            "fat": int(new_fat)
+        }
+        st.success("تم حفظ أهدافك بنجاح!")
+        st.rerun()
+
+    st.markdown("---")
+    st.subheader("🔑 مفتاح الخدمة")
+    user_key = st.text_input("مفتاح الخدمة (اختياري)", value=get_api_key(), type="password")
+    if user_key:
+        st.session_state["api_key"] = user_key
