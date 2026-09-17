@@ -136,69 +136,42 @@ if "meals" not in st.session_state:
     st.session_state.meals = []
 if "daily_goal" not in st.session_state:
     st.session_state.daily_goal = {
-        "calories": 2000,
-        "protein": 150,
-        "carbs": 200,
-        "fat": 65
+        "calories": 2905,
+        "protein": 182,
+        "carbs": 363,
+        "fat": 81
     }
 
 # App Header
 st.title("🥗 متتبع السعرات بالذكاء الاصطناعي")
 st.caption("صوّر وجبتك بكاميرا جوالك أو ارفع صورتها لمعرفة السعرات والماكروز تلقائياً")
 
-# Sidebar for Settings & BMR Calculator
+# Sidebar for Settings & Macro Goals
 with st.sidebar:
-    st.header("⚙️ حساب الاحتياج اليومي")
-    gender = st.selectbox("الجنس", ["ذكر", "أنثى"])
-    weight = st.number_input("الوزن (كجم)", min_value=30.0, max_value=250.0, value=75.0, step=0.5)
-    height = st.number_input("الطول (سم)", min_value=100.0, max_value=230.0, value=175.0, step=1.0)
-    age = st.number_input("العمر", min_value=12, max_value=100, value=25, step=1)
+    st.header("🎯 أهدافك اليومية (الماكروز)")
+    st.markdown("الأهداف الحالية المعتمدة:")
     
-    activity = st.selectbox("مستوى النشاط", [
-        "خامل (عمل مكتبي بدون رياضة)",
-        "خفيف (تمارين 1-3 أيام أسبوعياً)",
-        "متوسط (تمارين 3-5 أيام أسبوعياً)",
-        "عالي (تمارين 6-7 أيام أسبوعياً)"
-    ])
-    
-    goal = st.selectbox("الهدف", ["تنشيف (خسارة وزن)", "محافظة على الوزن", "تضخيم (زيادة عضل)"])
-    
-    if st.button("احسب هدفي اليومي 🎯"):
-        # Mifflin-St Jeor
-        if gender == "ذكر":
-            bmr = 88.362 + (13.397 * weight) + (4.799 * height) - (5.677 * age)
-        else:
-            bmr = 447.593 + (9.247 * weight) + (3.098 * height) - (4.330 * age)
-            
-        multipliers = {
-            "خامل (عمل مكتبي بدون رياضة)": 1.2,
-            "خفيف (تمارين 1-3 أيام أسبوعياً)": 1.375,
-            "متوسط (تمارين 3-5 أيام أسبوعياً)": 1.55,
-            "عالي (تمارين 6-7 أيام أسبوعياً)": 1.725
-        }
-        tdee = bmr * multipliers[activity]
+    col_g1, col_g2 = st.columns(2)
+    with col_g1:
+        new_cal = st.number_input("السعرات (kcal)", min_value=500, max_value=10000, value=st.session_state.daily_goal["calories"], step=50)
+        new_pro = st.number_input("البروتين (g)", min_value=10, max_value=500, value=st.session_state.daily_goal["protein"], step=5)
+    with col_g2:
+        new_carb = st.number_input("الكارب (g)", min_value=10, max_value=800, value=st.session_state.daily_goal["carbs"], step=5)
+        new_fat = st.number_input("الدهون (g)", min_value=5, max_value=300, value=st.session_state.daily_goal["fat"], step=5)
         
-        if goal == "تنشيف (خسارة وزن)":
-            target_cal = int(tdee * 0.8)
-            p_ratio, c_ratio, f_ratio = 0.30, 0.45, 0.25
-        elif goal == "تضخيم (زيادة عضل)":
-            target_cal = int(tdee * 1.15)
-            p_ratio, c_ratio, f_ratio = 0.25, 0.50, 0.25
-        else:
-            target_cal = int(tdee)
-            p_ratio, c_ratio, f_ratio = 0.25, 0.50, 0.25
-            
+    if st.button("💾 حفظ أي تعديل جديد", use_container_width=True):
         st.session_state.daily_goal = {
-            "calories": target_cal,
-            "protein": int((target_cal * p_ratio) / 4),
-            "carbs": int((target_cal * c_ratio) / 4),
-            "fat": int((target_cal * f_ratio) / 9)
+            "calories": int(new_cal),
+            "protein": int(new_pro),
+            "carbs": int(new_carb),
+            "fat": int(new_fat)
         }
-        st.success(f"تم ضبط هدفك اليومي على {target_cal} سعرة!")
+        st.success("تم تحديث أهدافك بنجاح!")
+        st.rerun()
 
     st.markdown("---")
     st.subheader("🔑 مفتاح Gemini API")
-    user_key = st.text_input("تعديل المفتاح", value=get_api_key(), type="password")
+    user_key = st.text_input("تعديل المفتاح (اختياري)", value=get_api_key(), type="password")
     if user_key:
         st.session_state["api_key"] = user_key
 
