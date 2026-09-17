@@ -8,8 +8,8 @@ import io
 
 # Page configuration for mobile-friendly UI
 st.set_page_config(
-    page_title="AI Calorie Tracker",
-    page_icon="🥗",
+    page_title="متتبع السعرات بالكاميرا",
+    page_icon="📸",
     layout="centered",
     initial_sidebar_state="collapsed",
 )
@@ -143,8 +143,8 @@ if "daily_goal" not in st.session_state:
     }
 
 # App Header
-st.title("🥗 متتبع السعرات بالذكاء الاصطناعي")
-st.caption("صوّر وجبتك بكاميرا جوالك أو ارفع صورتها لمعرفة السعرات والماكروز تلقائياً")
+st.title("📸 متتبع السعرات بالكاميرا")
+st.caption("صوّر وجبتك بكاميرا جوالك أو ارفع صورتها لحساب السعرات والماكروز مباشرة")
 
 # Sidebar for Settings & Macro Goals
 with st.sidebar:
@@ -170,8 +170,8 @@ with st.sidebar:
         st.rerun()
 
     st.markdown("---")
-    st.subheader("🔑 مفتاح Gemini API")
-    user_key = st.text_input("تعديل المفتاح (اختياري)", value=get_api_key(), type="password")
+    st.subheader("🔑 مفتاح الخدمة")
+    user_key = st.text_input("مفتاح الخدمة (اختياري)", value=get_api_key(), type="password")
     if user_key:
         st.session_state["api_key"] = user_key
 
@@ -219,7 +219,7 @@ with tab_upload:
 if image_data:
     st.image(image_data, caption="الصورة المختارة", use_container_width=True)
     if st.button("🔍 تحليل الوجبة وحساب السعرات", type="primary", use_container_width=True):
-        with st.spinner("جارِ تحليل الطعام وتقدير المكونات بالذكاء الاصطناعي..."):
+        with st.spinner("جارِ فحص الوجبة وتقدير السعرات والمكونات..."):
             try:
                 result = analyze_food_image(image_data, get_api_key())
                 st.session_state["last_analysis"] = result
