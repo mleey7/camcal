@@ -188,6 +188,61 @@ def analyze_food_image(image_bytes: bytes, api_key: str):
             
     raise Exception(f"فشل التحليل عبر جميع النماذج: {last_error}")
 
+# Helper: Call Gemini Text API (no image)
+def analyze_food_text(description: str, api_key: str):
+    models = ["gemini-3.5-flash", "gemini-3.8-flash", "gemini-3.1-flash-lite"]
+
+    prompt = f"""أنت خبير تغذية متخصص في حساب السعرات ومكونات الطعام.
+المستخدم يصف لك وجبة أو مكونات طعام بالتفصيل. حللها وقدّر بدقة:
+1. السعرات الحرارية (calories)
+2. البروتين بالجرام (protein)
+3. الكربوهيدرات بالجرام (carbs)
+4. الدهون بالجرام (fat)
+
+وصف الوجبة أو المكونات:
+{description}
+
+يجب أن تكون إجابتك بصيغة JSON صالحة حصراً بدون أي كود إضافي كالتالي:
+{{
+  "name": "اسم الوجبة بالعربي",
+  "calories": 450,
+  "protein": 42,
+  "carbs": 50,
+  "fat": 10,
+  "notes": "تفصيل سريع للمكونات والكميات المقدرة"
+}}
+إذا كان الوصف غير واضح أو لا يتعلق بطعام، اكتب في name: "وصف غير واضح" واجعل الأرقام 0."""
+
+    body = {
+        "contents": [
+            {
+                "parts": [
+                    {"text": prompt}
+                ]
+            }
+        ]
+    }
+
+    last_error = ""
+    for model in models:
+        try:
+            url = f"https://generativelanguage.googleapis.com/v1beta/models/{model}:generateContent?key={api_key}"
+            res = requests.post(url, headers={"Content-Type": "application/json"}, json=body, timeout=25)
+            if res.status_code == 200:
+                data = res.json()
+                text = data["candidates"][0]["content"]["parts"][0]["text"]
+                start = text.find("{")
+                end = text.rfind("}") + 1
+                if start != -1 and end != -1:
+                    return json.loads(text[start:end])
+            else:
+                last_error = f"Model {model} returned {res.status_code}: {res.text}"
+        except Exception as e:
+            last_error = str(e)
+            continue
+
+    raise Exception(f"فشل التحليل عبر جميع النماذج: {last_error}")
+
 # Load master database into session state
 if "history" not in st.session_state:
     st.session_state.history = load_all_history()
@@ -303,7 +358,7 @@ with tab_today:
             if "notes" in res and res["notes"]:
                 st.info(f"📝 {res['notes']}")
 
-            if st.button("➕ تسجيل الوجبة في اليوم", use_container_width=True):
+            if st.button("➕ تسجيل الوجبة في اليوم", use_container_width=True, key="save_img_meal"):
                 today_record["meals"].append({
                     "id": datetime.now().isoformat(),
                     "name": res.get("name", "وجبة"),
@@ -315,6 +370,58 @@ with tab_today:
                 })
                 save_all_history(st.session_state.history)
                 st.session_state["last_analysis"] = None
+                st.rerun()
+
+        st.markdown("---")
+
+        # --- Manual Text-based Macro Section ---
+        st.subheader("✍️ أدخل مكونات الوجبة يدوياً")
+        st.caption("اكتب وصف الوجبة أو المكونات بالتفصيل وسيتم حساب الماكروز تلقائياً")
+
+        meal_text = st.text_area(
+            "مثال: 150 جرام صدر دجاج مشوي + كوب أرز أبيض + ملعقة زيت زيتون",
+            height=100,
+            placeholder="اكتب هنا مكونات وجبتك بأي طريقة تريد...",
+            key="manual_meal_text"
+        )
+
+        if st.button("🧮 احسب الماكروز", type="primary", use_container_width=True):
+            if not meal_text.strip():
+                st.warning("من فضلك اكتب وصف الوجبة أو المكونات أولاً.")
+            else:
+                with st.spinner("جارِ تحليل المكونات وحساب الماكروز..."):
+                    try:
+                        text_result = analyze_food_text(meal_text.strip(), get_api_key())
+                        st.session_state["last_text_analysis"] = text_result
+                    except Exception as e:
+                        st.error(f"حدث خطأ أثناء التحليل: {e}")
+
+        if "last_text_analysis" in st.session_state and st.session_state["last_text_analysis"]:
+            tr = st.session_state["last_text_analysis"]
+            st.success(f"🍽️ **{tr.get('name', 'وجبة')}**")
+
+            tc1, tc2 = st.columns(2)
+            tc1.metric("السعرات 🔥", f"{tr.get('calories', 0)} kcal")
+            tc2.metric("البروتين 🥩", f"{tr.get('protein', 0)} g")
+            tc3, tc4 = st.columns(2)
+            tc3.metric("الكارب 🍞", f"{tr.get('carbs', 0)} g")
+            tc4.metric("الدهون 🥑", f"{tr.get('fat', 0)} g")
+
+            if tr.get("notes"):
+                st.info(f"📝 {tr['notes']}")
+
+            if st.button("➕ تسجيل الوجبة في اليوم", use_container_width=True, key="save_text_meal"):
+                today_record["meals"].append({
+                    "id": datetime.now().isoformat(),
+                    "name": tr.get("name", "وجبة"),
+                    "calories": int(tr.get("calories", 0)),
+                    "protein": int(tr.get("protein", 0)),
+                    "carbs": int(tr.get("carbs", 0)),
+                    "fat": int(tr.get("fat", 0)),
+                    "time": datetime.now().strftime("%I:%M %p")
+                })
+                save_all_history(st.session_state.history)
+                st.session_state["last_text_analysis"] = None
                 st.rerun()
 
         st.markdown("---")
