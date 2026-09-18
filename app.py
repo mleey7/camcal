@@ -15,10 +15,10 @@ st.set_page_config(
     initial_sidebar_state="collapsed",
 )
 
-# Custom CSS for Mobile & Arabic RTL layout (Clean, spacious, no sidebar)
+# Custom CSS for Mobile & Arabic RTL layout (Fresh Green Nature Theme)
 st.markdown("""
 <style>
-    @import url('https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700;800&display=swap');
+    @import url('https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700;800;900&display=swap');
     
     * {
         font-family: 'Cairo', sans-serif !important;
@@ -27,41 +27,97 @@ st.markdown("""
     .stApp {
         direction: rtl !important;
         text-align: right !important;
+        background: linear-gradient(180deg, #f0fdf4 0%, #fbfdfc 250px, #ffffff 100%) !important;
     }
     
-    /* Hide sidebar and hamburger menu completely on mobile */
+    /* Hide sidebar completely */
     [data-testid="stSidebar"], [data-testid="collapsedControl"] {
         display: none !important;
     }
+
+    /* Top Curved Hero Section */
+    .hero-container {
+        background: linear-gradient(135deg, #1b4332 0%, #2d6a4f 55%, #40916c 100%);
+        border-radius: 0 0 30px 30px;
+        padding: 26px 20px 22px 20px;
+        color: #ffffff;
+        text-align: center;
+        margin: -4rem -1rem 1.5rem -1rem;
+        box-shadow: 0 10px 25px rgba(45, 106, 79, 0.22);
+        position: relative;
+    }
+
+    .hero-leaf-badge {
+        display: inline-block;
+        background: rgba(255, 255, 255, 0.18);
+        border: 1px solid rgba(255, 255, 255, 0.3);
+        padding: 4px 14px;
+        border-radius: 20px;
+        font-size: 0.85rem;
+        font-weight: 700;
+        color: #e8f5e9;
+        margin-bottom: 8px;
+    }
+
+    .hero-title {
+        font-size: 1.75rem !important;
+        font-weight: 800 !important;
+        color: #ffffff !important;
+        margin: 0 !important;
+        line-height: 1.3 !important;
+    }
+
+    .hero-subtitle {
+        font-size: 0.92rem;
+        color: #d8f3dc !important;
+        margin-top: 6px;
+        margin-bottom: 0;
+        font-weight: 600;
+    }
     
-    /* Spacious metric boxes for mobile */
+    /* Spacious metric boxes for mobile with subtle green glow */
     div[data-testid="stMetric"] {
-        background: #f8f9fa;
+        background: #ffffff;
         padding: 12px 14px;
-        border-radius: 12px;
-        border: 1px solid #e9ecef;
+        border-radius: 14px;
+        border: 1px solid #d8f3dc;
         text-align: center;
         margin-bottom: 8px;
+        box-shadow: 0 2px 8px rgba(45, 106, 79, 0.05);
     }
     
     div[data-testid="stMetricLabel"] {
         justify-content: center !important;
-        font-size: 0.95rem !important;
-        font-weight: 600 !important;
+        font-size: 0.92rem !important;
+        font-weight: 700 !important;
+        color: #2d6a4f !important;
     }
     
     div[data-testid="stMetricValue"] {
         font-size: 1.45rem !important;
+        font-weight: 800 !important;
         justify-content: center !important;
+        color: #1b4332 !important;
     }
     
     .meal-card {
         background: #ffffff;
-        border: 1px solid #e0e0e0;
-        border-radius: 12px;
-        padding: 14px;
-        margin-bottom: 10px;
-        box-shadow: 0 2px 6px rgba(0,0,0,0.03);
+        border: 1px solid #e2e8f0;
+        border-right: 5px solid #2d6a4f;
+        border-radius: 14px;
+        padding: 14px 16px;
+        margin-bottom: 12px;
+        box-shadow: 0 3px 10px rgba(0,0,0,0.04);
+    }
+
+    .preset-card {
+        background: #ffffff;
+        border: 1px solid #d8f3dc;
+        border-radius: 14px;
+        padding: 12px;
+        text-align: center;
+        margin-bottom: 8px;
+        box-shadow: 0 2px 6px rgba(45, 106, 79, 0.06);
     }
     
     .log-day-card {
@@ -74,10 +130,10 @@ st.markdown("""
     
     .macro-badge {
         display: inline-block;
-        padding: 4px 9px;
-        border-radius: 18px;
+        padding: 4px 10px;
+        border-radius: 16px;
         font-size: 0.82rem;
-        font-weight: 600;
+        font-weight: 700;
         margin-left: 5px;
         margin-top: 4px;
     }
@@ -92,9 +148,29 @@ st.markdown("""
         justify-content: center;
     }
     .stTabs [data-baseweb="tab"] {
-        font-size: 1rem !important;
+        font-size: 0.98rem !important;
         font-weight: 700 !important;
-        padding: 8px 16px !important;
+        padding: 8px 14px !important;
+        border-radius: 10px 10px 0 0 !important;
+    }
+
+    /* Buttons */
+    .stButton > button {
+        border-radius: 12px !important;
+        font-weight: 700 !important;
+        transition: all 0.2s ease !important;
+    }
+
+    /* Expander label fix */
+    [data-testid="stExpander"] {
+        background: #ffffff;
+        border-radius: 12px;
+        border: 1px solid #e2e8f0;
+    }
+    [data-testid="stExpander"] summary {
+        direction: rtl !important;
+        text-align: right !important;
+        font-weight: 700 !important;
     }
 </style>
 """, unsafe_allow_html=True)
@@ -272,9 +348,14 @@ if today_str not in st.session_state.history:
 
 today_record = st.session_state.history[today_str]
 
-# App Header
-st.title("📸 متتبع السعرات بالكاميرا")
-st.caption("صوّر وجبتك بكاميرا جوالك أو ارفع صورتها لحساب السعرات والماكروز مباشرة")
+# App Header (Curved organic emerald hero with fresh leaf accents)
+st.markdown("""
+<div class="hero-container">
+    <div class="hero-leaf-badge">🌿 متتبع صحي وطبيعي 🍃</div>
+    <h1 class="hero-title">📸 متتبع السعرات بالكاميرا</h1>
+    <p class="hero-subtitle">احسب سعراتك بالصورة، اكتب مكوناتك، أو اختر وجباتك بضغطة زر</p>
+</div>
+""", unsafe_allow_html=True)
 
 # Main Navigation Tabs
 tab_today, tab_week, tab_month = st.tabs(["🔥 اليوم", "📅 سجل الأسبوع (7 أيام)", "🗓️ سجل الشهر (30 يوم)"])
@@ -318,111 +399,202 @@ with tab_today:
 
     st.markdown("---")
 
-    # Camera & Image Input
+    # Meal Addition Section
     if not today_record.get("is_closed", False):
-        st.subheader("📸 إضافة وجبة جديدة")
-        tab_cam, tab_up = st.tabs(["📷 التقاط بالكاميرا", "📁 رفع من الألبوم"])
+        st.subheader("🍽️ إضافة وجبة جديدة")
+        tab_quick, tab_cam, tab_manual = st.tabs([
+            "⚡ وجبات شائعة (كبسة، سليق...)",
+            "📸 تصوير بالكاميرا / الألبوم",
+            "✍️ كتابة المكونات يدوياً"
+        ])
 
-        image_data = None
+        # --- Sub-tab 1: Quick Popular Meals ---
+        with tab_quick:
+            st.caption("اختر وجبة شائعة ومحسوبة الماكروز مسبقاً وسجلها بضغطة زر واحدة:")
+            quick_options = [
+                {
+                    "name": "🍗 كبسة دجاج مع أرز",
+                    "desc": "نصف حبة دجاج مع أرز كبسة",
+                    "calories": 780,
+                    "protein": 58,
+                    "carbs": 85,
+                    "fat": 22
+                },
+                {
+                    "name": "🍚 صدر دجاج مع أرز أبيض",
+                    "desc": "200 جرام صدر مشوي + كوب أرز أبيض",
+                    "calories": 520,
+                    "protein": 62,
+                    "carbs": 48,
+                    "fat": 8
+                },
+                {
+                    "name": "🍲 سليق دجاج حجازي",
+                    "desc": "طبق سليق غني مع نصف دجاجة محمرة",
+                    "calories": 650,
+                    "protein": 52,
+                    "carbs": 68,
+                    "fat": 18
+                },
+                {
+                    "name": "🥩 كبسة لحم غنم أو حاشي",
+                    "desc": "لحم مطبوخ مع أرز كبسة وسلطة حارة",
+                    "calories": 850,
+                    "protein": 50,
+                    "carbs": 80,
+                    "fat": 38
+                },
+                {
+                    "name": "🍳 فطور بيض وتوست صحي",
+                    "desc": "3 بيضات + 2 شريحة توست بر + ملعقة زيت زيتون",
+                    "calories": 420,
+                    "protein": 30,
+                    "carbs": 32,
+                    "fat": 16
+                },
+                {
+                    "name": "🥗 سلطة دجاج أو تونة مشبعة",
+                    "desc": "سلطة خضراء مع 150g صدر دجاج أو تونة بزيت زيتون",
+                    "calories": 370,
+                    "protein": 42,
+                    "carbs": 12,
+                    "fat": 14
+                }
+            ]
+
+            selected_meal_idx = st.selectbox(
+                "اختر الوجبة:",
+                range(len(quick_options)),
+                format_func=lambda i: f"{quick_options[i]['name']} ({quick_options[i]['calories']} سعرة)"
+            )
+            
+            chosen = quick_options[selected_meal_idx]
+            st.markdown(f"""
+            <div class="preset-card">
+                <h4 style="margin: 0; color: #1b4332;">{chosen['name']}</h4>
+                <p style="color: #666; font-size: 0.88rem; margin: 4px 0 10px 0;">{chosen['desc']}</p>
+                <div>
+                    <span class="macro-badge badge-cal">🔥 {chosen['calories']} سعرة</span>
+                    <span class="macro-badge badge-pro">🥩 {chosen['protein']}g بروتين</span>
+                    <span class="macro-badge badge-carb">🍞 {chosen['carbs']}g كارب</span>
+                    <span class="macro-badge badge-fat">🥑 {chosen['fat']}g دهون</span>
+                </div>
+            </div>
+            """, unsafe_allow_html=True)
+
+            if st.button("➕ تسجيل هذه الوجبة في اليوم", type="primary", use_container_width=True, key="save_preset_meal"):
+                today_record["meals"].append({
+                    "id": datetime.now().isoformat(),
+                    "name": chosen["name"],
+                    "calories": chosen["calories"],
+                    "protein": chosen["protein"],
+                    "carbs": chosen["carbs"],
+                    "fat": chosen["fat"],
+                    "time": datetime.now().strftime("%I:%M %p")
+                })
+                save_all_history(st.session_state.history)
+                st.success(f"تم تسجيل {chosen['name']} بنجاح!")
+                st.rerun()
+
+        # --- Sub-tab 2: Camera & Album ---
         with tab_cam:
-            cam_pic = st.camera_input("التقط صورة لطبقك الآن")
-            if cam_pic:
-                image_data = cam_pic.getvalue()
+            tab_c1, tab_c2 = st.tabs(["📷 التقاط بالكاميرا", "📁 رفع من الألبوم"])
+            image_data = None
+            with tab_c1:
+                cam_pic = st.camera_input("التقط صورة لطبقك الآن")
+                if cam_pic:
+                    image_data = cam_pic.getvalue()
+            with tab_c2:
+                up_file = st.file_uploader("اختر صورة من ألبوم الصور", type=["jpg", "jpeg", "png", "webp"])
+                if up_file:
+                    image_data = up_file.getvalue()
 
-        with tab_up:
-            up_file = st.file_uploader("اختر صورة من ألبوم الصور", type=["jpg", "jpeg", "png", "webp"])
-            if up_file:
-                image_data = up_file.getvalue()
+            if image_data:
+                st.image(image_data, caption="الصورة المختارة", use_container_width=True)
+                if st.button("🔍 فحص الوجبة وحساب السعرات", type="primary", use_container_width=True):
+                    with st.spinner("جارِ فحص الوجبة وتقدير السعرات والمكونات..."):
+                        try:
+                            result = analyze_food_image(image_data, get_api_key())
+                            st.session_state["last_analysis"] = result
+                        except Exception as e:
+                            st.error(f"حدث خطأ أثناء التحليل: {e}")
 
-        if image_data:
-            st.image(image_data, caption="الصورة المختارة", use_container_width=True)
-            if st.button("🔍 فحص الوجبة وحساب السعرات", type="primary", use_container_width=True):
-                with st.spinner("جارِ فحص الوجبة وتقدير السعرات والمكونات..."):
-                    try:
-                        result = analyze_food_image(image_data, get_api_key())
-                        st.session_state["last_analysis"] = result
-                    except Exception as e:
-                        st.error(f"حدث خطأ أثناء التحليل: {e}")
+            if "last_analysis" in st.session_state and st.session_state["last_analysis"]:
+                res = st.session_state["last_analysis"]
+                st.success(f"🍽️ **تم التعرف على:** {res.get('name', 'وجبة')}")
 
-        if "last_analysis" in st.session_state and st.session_state["last_analysis"]:
-            res = st.session_state["last_analysis"]
-            st.success(f"🍽️ **تم التعرف على:** {res.get('name', 'وجبة')}")
+                rc1, rc2 = st.columns(2)
+                rc1.metric("السعرات 🔥", f"{res.get('calories', 0)} kcal")
+                rc2.metric("البروتين 🥩", f"{res.get('protein', 0)} g")
+                rc3, rc4 = st.columns(2)
+                rc3.metric("الكارب 🍞", f"{res.get('carbs', 0)} g")
+                rc4.metric("الدهون 🥑", f"{res.get('fat', 0)} g")
 
-            rc1, rc2 = st.columns(2)
-            rc1.metric("السعرات 🔥", f"{res.get('calories', 0)} kcal")
-            rc2.metric("البروتين 🥩", f"{res.get('protein', 0)} g")
-            rc3, rc4 = st.columns(2)
-            rc3.metric("الكارب 🍞", f"{res.get('carbs', 0)} g")
-            rc4.metric("الدهون 🥑", f"{res.get('fat', 0)} g")
+                if "notes" in res and res["notes"]:
+                    st.info(f"📝 {res['notes']}")
 
-            if "notes" in res and res["notes"]:
-                st.info(f"📝 {res['notes']}")
+                if st.button("➕ تسجيل الوجبة المصورة", use_container_width=True, key="save_img_meal"):
+                    today_record["meals"].append({
+                        "id": datetime.now().isoformat(),
+                        "name": res.get("name", "وجبة"),
+                        "calories": int(res.get("calories", 0)),
+                        "protein": int(res.get("protein", 0)),
+                        "carbs": int(res.get("carbs", 0)),
+                        "fat": int(res.get("fat", 0)),
+                        "time": datetime.now().strftime("%I:%M %p")
+                    })
+                    save_all_history(st.session_state.history)
+                    st.session_state["last_analysis"] = None
+                    st.rerun()
 
-            if st.button("➕ تسجيل الوجبة في اليوم", use_container_width=True, key="save_img_meal"):
-                today_record["meals"].append({
-                    "id": datetime.now().isoformat(),
-                    "name": res.get("name", "وجبة"),
-                    "calories": int(res.get("calories", 0)),
-                    "protein": int(res.get("protein", 0)),
-                    "carbs": int(res.get("carbs", 0)),
-                    "fat": int(res.get("fat", 0)),
-                    "time": datetime.now().strftime("%I:%M %p")
-                })
-                save_all_history(st.session_state.history)
-                st.session_state["last_analysis"] = None
-                st.rerun()
+        # --- Sub-tab 3: Manual Text Input ---
+        with tab_manual:
+            st.caption("اكتب وصف الوجبة أو المكونات بالتفصيل وسيتم حساب الماكروز تلقائياً:")
+            meal_text = st.text_area(
+                "اكتب المكونات هنا:",
+                height=100,
+                placeholder="مثال: 150 جرام صدر دجاج مشوي + كوب أرز أبيض + ملعقة زيت زيتون",
+                key="manual_meal_text"
+            )
 
-        st.markdown("---")
+            if st.button("🧮 احسب الماكروز", type="primary", use_container_width=True):
+                if not meal_text.strip():
+                    st.warning("من فضلك اكتب وصف الوجبة أو المكونات أولاً.")
+                else:
+                    with st.spinner("جارِ تحليل المكونات وحساب الماكروز..."):
+                        try:
+                            text_result = analyze_food_text(meal_text.strip(), get_api_key())
+                            st.session_state["last_text_analysis"] = text_result
+                        except Exception as e:
+                            st.error(f"حدث خطأ أثناء التحليل: {e}")
 
-        # --- Manual Text-based Macro Section ---
-        st.subheader("✍️ أدخل مكونات الوجبة يدوياً")
-        st.caption("اكتب وصف الوجبة أو المكونات بالتفصيل وسيتم حساب الماكروز تلقائياً")
+            if "last_text_analysis" in st.session_state and st.session_state["last_text_analysis"]:
+                tr = st.session_state["last_text_analysis"]
+                st.success(f"🍽️ **{tr.get('name', 'وجبة')}**")
 
-        meal_text = st.text_area(
-            "مثال: 150 جرام صدر دجاج مشوي + كوب أرز أبيض + ملعقة زيت زيتون",
-            height=100,
-            placeholder="اكتب هنا مكونات وجبتك بأي طريقة تريد...",
-            key="manual_meal_text"
-        )
+                tc1, tc2 = st.columns(2)
+                tc1.metric("السعرات 🔥", f"{tr.get('calories', 0)} kcal")
+                tc2.metric("البروتين 🥩", f"{tr.get('protein', 0)} g")
+                tc3, tc4 = st.columns(2)
+                tc3.metric("الكارب 🍞", f"{tr.get('carbs', 0)} g")
+                tc4.metric("الدهون 🥑", f"{tr.get('fat', 0)} g")
 
-        if st.button("🧮 احسب الماكروز", type="primary", use_container_width=True):
-            if not meal_text.strip():
-                st.warning("من فضلك اكتب وصف الوجبة أو المكونات أولاً.")
-            else:
-                with st.spinner("جارِ تحليل المكونات وحساب الماكروز..."):
-                    try:
-                        text_result = analyze_food_text(meal_text.strip(), get_api_key())
-                        st.session_state["last_text_analysis"] = text_result
-                    except Exception as e:
-                        st.error(f"حدث خطأ أثناء التحليل: {e}")
+                if tr.get("notes"):
+                    st.info(f"📝 {tr['notes']}")
 
-        if "last_text_analysis" in st.session_state and st.session_state["last_text_analysis"]:
-            tr = st.session_state["last_text_analysis"]
-            st.success(f"🍽️ **{tr.get('name', 'وجبة')}**")
-
-            tc1, tc2 = st.columns(2)
-            tc1.metric("السعرات 🔥", f"{tr.get('calories', 0)} kcal")
-            tc2.metric("البروتين 🥩", f"{tr.get('protein', 0)} g")
-            tc3, tc4 = st.columns(2)
-            tc3.metric("الكارب 🍞", f"{tr.get('carbs', 0)} g")
-            tc4.metric("الدهون 🥑", f"{tr.get('fat', 0)} g")
-
-            if tr.get("notes"):
-                st.info(f"📝 {tr['notes']}")
-
-            if st.button("➕ تسجيل الوجبة في اليوم", use_container_width=True, key="save_text_meal"):
-                today_record["meals"].append({
-                    "id": datetime.now().isoformat(),
-                    "name": tr.get("name", "وجبة"),
-                    "calories": int(tr.get("calories", 0)),
-                    "protein": int(tr.get("protein", 0)),
-                    "carbs": int(tr.get("carbs", 0)),
-                    "fat": int(tr.get("fat", 0)),
-                    "time": datetime.now().strftime("%I:%M %p")
-                })
-                save_all_history(st.session_state.history)
-                st.session_state["last_text_analysis"] = None
-                st.rerun()
+                if st.button("➕ تسجيل الوجبة المكتوبة", use_container_width=True, key="save_text_meal"):
+                    today_record["meals"].append({
+                        "id": datetime.now().isoformat(),
+                        "name": tr.get("name", "وجبة"),
+                        "calories": int(tr.get("calories", 0)),
+                        "protein": int(tr.get("protein", 0)),
+                        "carbs": int(tr.get("carbs", 0)),
+                        "fat": int(tr.get("fat", 0)),
+                        "time": datetime.now().strftime("%I:%M %p")
+                    })
+                    save_all_history(st.session_state.history)
+                    st.session_state["last_text_analysis"] = None
+                    st.rerun()
 
         st.markdown("---")
 
@@ -588,7 +760,7 @@ with tab_month:
 
 # ----------------- Settings Expander at Bottom -----------------
 st.markdown("---")
-with st.expander("⚙️ تعديل الأهداف اليومية (الماكروز) والمفتاح"):
+with st.expander("⚙️ إعدادات الماكروز والمفتاح"):
     st.markdown("أهدافك اليومية الحالية:")
     
     col_g1, col_g2 = st.columns(2)
