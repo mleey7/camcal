@@ -203,11 +203,19 @@ def get_api_key():
     return os.environ.get("GOOGLE_AI_API_KEY", "")
 
 # Helper: Call Gemini Vision API
-def analyze_food_image(image_bytes: bytes, api_key: str):
+def analyze_food_image(image_bytes: bytes, api_key: str, extra_notes: str = ""):
     base64_img = base64.b64encode(image_bytes).decode("utf-8")
     models = ["gemini-3.5-flash", "gemini-3.8-flash", "gemini-3.1-flash-lite"]
     
-    prompt = """
+    notes_clause = ""
+    if extra_notes:
+        notes_clause = f"""
+    ملاحظات مهمة كتبها المستخدم بخصوص مكونات الوجبة (مثل كمية الزيت، الوزن الدقيق، أو تفاصيل غير ظاهرة):
+    "{extra_notes}"
+    احسب هذه الملاحظات بدقة وأضفها لحساب السعرات والماكروز.
+    """
+
+    prompt = f"""
     أنت خبير تغذية متخصص في حساب السعرات ومكونات الطعام.
     حلل هذه الصورة واكتشف نوع الوجبة أو الأطعمة الموجودة بدقة.
     قدّر وزنها التقريبي، ثم احسب بدقة:
@@ -215,16 +223,16 @@ def analyze_food_image(image_bytes: bytes, api_key: str):
     2. البروتين بالجرام (protein)
     3. الكربوهيدرات بالجرام (carbs)
     4. الدهون بالجرام (fat)
-    
+    {notes_clause}
     يجب أن تكون إجابتك بصيغة JSON صالحة حصراً بدون أي كود إضافي كالتالي:
-    {
+    {{
       "name": "اسم الوجبة بالعربي (مثال: صدر دجاج مشوي مع أرز وسلطة)",
       "calories": 450,
       "protein": 42,
       "carbs": 50,
       "fat": 10,
       "notes": "تفصيل سريع للمكونات المقدرة"
-    }
+    }}
     إذا لم تكن هناك وجبة طعام في الصورة، اكتب في name: "لم يتم التعرف على طعام" واجعل الأرقام 0.
     """
     
@@ -511,10 +519,17 @@ with tab_today:
 
             if image_data:
                 st.image(image_data, caption="الصورة المختارة", use_container_width=True)
+                
+                img_notes = st.text_input(
+                    "✍️ ملاحظات إضافية على الصورة (اختياري):",
+                    placeholder="مثال: مطبوخ بملعقة زيت، أو سكر دايت، أو 150g...",
+                    key="camera_extra_notes"
+                )
+
                 if st.button("🔍 فحص الوجبة وحساب السعرات", type="primary", use_container_width=True):
                     with st.spinner("جارِ فحص الوجبة وتقدير السعرات والمكونات..."):
                         try:
-                            result = analyze_food_image(image_data, get_api_key())
+                            result = analyze_food_image(image_data, get_api_key(), img_notes.strip())
                             st.session_state["last_analysis"] = result
                         except Exception as e:
                             st.error(f"حدث خطأ أثناء التحليل: {e}")
